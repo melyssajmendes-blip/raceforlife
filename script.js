@@ -27,6 +27,7 @@ document.addEventListener('keyup', keyUp);
 function keyDown(e) {
     e.preventDefault();
     keys[e.key] = true;
+    // Efeito de nitro quando acelerando
     if ((e.key === 'ArrowUp' || e.key === 'ArrowDown') && player.start) {
         createNitroEffect();
     }
@@ -59,6 +60,7 @@ function isCollide(a, b) {
     aRect = a.getBoundingClientRect();
     bRect = b.getBoundingClientRect();
     
+    // Reduzir hitbox para melhor jogabilidade
     const margin = 10;
     return !(
         (aRect.bottom - margin < bRect.top + margin) ||
@@ -66,6 +68,17 @@ function isCollide(a, b) {
         (aRect.right - margin < bRect.left + margin) ||
         (aRect.left + margin > bRect.right - margin)
     );
+}
+
+function moveLines() {
+    let lines = document.querySelectorAll('.lines');
+    lines.forEach(function(item) {
+        if (item.y >= 700) {
+            item.y -= 750;
+        }
+        item.y += player.speed;
+        item.style.top = item.y + "px";
+    });
 }
 
 function createParticle(x, y, type) {
@@ -88,6 +101,7 @@ function createParticle(x, y, type) {
     
     gameArea.appendChild(particle);
     
+    // Animação da partícula
     let opacity = 1;
     let size = 10;
     const animate = () => {
@@ -160,9 +174,11 @@ function moveItems(items, className) {
         
         if (item.y >= 750) {
             item.y = -300;
+            // Posições para 4 pistas em pista de 600px
             const lanes = [70, 220, 370, 520];
             item.style.left = lanes[Math.floor(Math.random() * 4)] + "px";
             
+            // Reposicionar aleatoriamente itens
             if (Math.random() > 0.7) {
                 const newLane = Math.floor(Math.random() * 4);
                 item.style.left = lanes[newLane] + "px";
@@ -188,7 +204,7 @@ function endGame() {
 
 function getRandomCarType() {
     const carTypes = ['red', 'blue', 'green', 'yellow', 'purple', 'truck', 'sports'];
-    const weights = [0.2, 0.2, 0.2, 0.1, 0.1, 0.1, 0.1];
+    const weights = [0.2, 0.2, 0.2, 0.1, 0.1, 0.1, 0.1]; // Probabilidades diferentes
     
     let random = Math.random();
     let sum = 0;
@@ -205,6 +221,7 @@ function getRandomCarType() {
 function moveEnemy(car) {
     let enemy = document.querySelectorAll('.enemy');
     enemy.forEach(function(item) {
+        // Verificar colisão (ignorar se shield está ativo)
         if (isCollide(car, item) && !player.shieldActive) {
             console.log("Collision!");
             endGame();
@@ -213,14 +230,17 @@ function moveEnemy(car) {
         
         if (item.y >= 750) {
             item.y = -400 - Math.random() * 300;
+            // Posições para 4 pistas em pista de 600px
             const lanes = [60, 210, 360, 510];
             const randomLane = Math.floor(Math.random() * 4);
             item.style.left = lanes[randomLane] + "px";
             
+            // Ocasionalmente mudar o tipo do carro
             if (Math.random() > 0.8) {
                 const newType = getRandomCarType();
                 item.className = 'enemy ' + newType;
                 
+                // Ajustar tamanho para caminhões
                 if (newType === 'truck') {
                     item.style.height = '120px';
                     item.style.width = '80px';
@@ -232,6 +252,7 @@ function moveEnemy(car) {
                 }
             }
             
+            // Velocidade variável baseada no tipo
             let speedMultiplier = 1;
             if (item.classList.contains('sports')) speedMultiplier = 1.3;
             if (item.classList.contains('truck')) speedMultiplier = 0.8;
@@ -239,10 +260,12 @@ function moveEnemy(car) {
             item.dataset.speedMultiplier = speedMultiplier;
         }
         
+        // Movimentar com velocidade baseada no tipo
         const speedMultiplier = parseFloat(item.dataset.speedMultiplier) || 1;
         item.y += player.speed * speedMultiplier;
         item.style.top = item.y + "px";
         
+        // Efeito de balanço para alguns carros
         if (item.classList.contains('sports') && Math.random() > 0.7) {
             const swing = Math.sin(Date.now() / 200) * 3;
             item.style.transform = `translateX(${swing}px)`;
@@ -251,15 +274,17 @@ function moveEnemy(car) {
 }
 
 function increaseDifficulty() {
+    // Aumenta velocidade a cada 1500 pontos
     const newLevel = Math.floor(player.score / 1500) + 1;
     if (newLevel > player.level) {
         player.level = newLevel;
         player.baseSpeed = 5 + (player.level * 0.8);
         if (!player.speedBoostActive) {
-            player.speed = Math.min(player.baseSpeed, 25);
+            player.speed = Math.min(player.baseSpeed, 25); // Limite máximo de velocidade
         }
         console.log("Level up! Speed: " + player.speed.toFixed(1));
         
+        // Adicionar mais inimigos em níveis mais altos
         if (player.level % 3 === 0) {
             spawnAdditionalEnemy();
         }
@@ -273,9 +298,11 @@ function spawnAdditionalEnemy() {
     enemyCar.y = -400 - Math.random() * 300;
     enemyCar.style.top = enemyCar.y + "px";
     
+    // Posições para 4 pistas
     const lanes = [60, 210, 360, 510];
     enemyCar.style.left = lanes[Math.floor(Math.random() * 4)] + "px";
     
+    // Ajustar tamanho para caminhões
     if (carType === 'truck') {
         enemyCar.style.height = '120px';
         enemyCar.style.width = '80px';
@@ -309,12 +336,10 @@ function gamePlay() {
     let road = gameArea.getBoundingClientRect();
     
     if (player.start) {
-        // ANIMAÇÃO DO SCROLL DA PISTA
-        const currentY = parseFloat(gameArea.style.backgroundPositionY) || 0;
-        gameArea.style.backgroundPositionY = (currentY + player.speed * 1.5) + 'px';
-        
+        moveLines();
         moveEnemy(car);
         
+        // Mover itens coletáveis
         let coins = document.querySelectorAll('.coin');
         let boosts = document.querySelectorAll('.speedBoost');
         let shields = document.querySelectorAll('.shield');
@@ -322,9 +347,14 @@ function gamePlay() {
         moveItems(boosts, 'speedBoost');
         moveItems(shields, 'shield');
         
+        // Atualizar timers
         updateTimers();
+        
+        // Aumentar dificuldade gradualmente
         increaseDifficulty();
         
+        // Controles do jogador com limites da pista maior
+        const laneWidth = 130; // Largura aproximada de cada pista
         const minX = 10;
         const maxX = road.width - 70;
         
@@ -341,9 +371,11 @@ function gamePlay() {
             player.x += player.speed * 1.2;
         }
         
+        // Suavizar movimento entre pistas
         car.style.top = player.y + "px";
         car.style.left = player.x + "px";
         
+        // Efeito visual de velocidade
         if (player.speed > 15) {
             const blurAmount = Math.min((player.speed - 15) / 5, 3);
             gameArea.style.filter = `blur(${blurAmount}px)`;
@@ -353,7 +385,7 @@ function gamePlay() {
         
         window.requestAnimationFrame(gamePlay);
         
-        player.score += Math.floor(player.speed / 5);
+        player.score += Math.floor(player.speed / 5); // Pontuação baseada na velocidade
         score.innerHTML = `
             <div style="font-size: 1.1em; font-weight: bold;">SCORE: ${player.score}</div>
             <div>LEVEL: ${player.level}</div>
@@ -367,53 +399,79 @@ function gamePlay() {
 function start() {
     startScreen.classList.add('hide');
     gameArea.innerHTML = "";
-    
-    // NÃO SOBRESCREVER O BACKGROUND - ele já está definido no CSS
-    // Apenas garantir que a animação de scroll funcione
-    gameArea.style.backgroundPositionY = '0px';
+    gameArea.style.filter = 'blur(0px)';
     
     player.start = true;
     player.score = 0;
-    player.level = 1;
-    player.baseSpeed = 5;
     player.speed = 5;
+    player.baseSpeed = 5;
     player.speedBoostActive = false;
     player.shieldActive = false;
-    player.x = 270;
-    player.y = gameArea.offsetHeight - 200;
+    player.level = 1;
     
     window.requestAnimationFrame(gamePlay);
+    
+    // Criar linhas da estrada para 4 pistas em pista de 600px
+    const lanePositions = [150, 300, 450]; // 25%, 50%, 75% de 600px
+    for (let pos of lanePositions) {
+        for (let x = 0; x < 6; x++) {
+            let roadLine = document.createElement('div');
+            roadLine.className = 'lines';
+            if (pos === 150) roadLine.classList.add('line1');
+            if (pos === 300) roadLine.classList.add('line2');
+            if (pos === 450) roadLine.classList.add('line3');
+            roadLine.y = (x * 130);
+            roadLine.style.top = roadLine.y + "px";
+            roadLine.style.left = pos + "px";
+            gameArea.appendChild(roadLine);
+        }
+    }
     
     // Criar carro do jogador
     let car = document.createElement('div');
     car.className = 'car';
-    car.style.left = player.x + "px";
-    car.style.top = player.y + "px";
     gameArea.appendChild(car);
     
-    // Criar carros inimigos
-    for (let x = 0; x < 3; x++) {
+    // Posição inicial no centro (aproximadamente 3ª pista)
+    player.x = 360;
+    player.y = gameArea.offsetHeight - 200;
+    car.style.left = player.x + "px";
+    car.style.top = player.y + "px";
+    
+    // Criar carros inimigos com variações
+    for (let x = 0; x < 5; x++) {
         let enemyCar = document.createElement('div');
         const carType = getRandomCarType();
         enemyCar.className = 'enemy ' + carType;
-        enemyCar.y = ((x + 1) * 350) * -1;
+        enemyCar.y = ((x + 1) * 300) * -1;
         enemyCar.style.top = enemyCar.y + "px";
+        
+        // Posições para 4 pistas
         const lanes = [60, 210, 360, 510];
         enemyCar.style.left = lanes[Math.floor(Math.random() * 4)] + "px";
         
+        // Ajustar tamanho para caminhões
         if (carType === 'truck') {
             enemyCar.style.height = '120px';
             enemyCar.style.width = '80px';
             enemyCar.style.backgroundSize = '80px 120px';
         }
         
+        // Velocidade baseada no tipo
+        let speedMultiplier = 1;
+        if (carType === 'sports') speedMultiplier = 1.3;
+        if (carType === 'truck') speedMultiplier = 0.8;
+        enemyCar.dataset.speedMultiplier = speedMultiplier;
+        
         gameArea.appendChild(enemyCar);
     }
     
+    // Criar itens coletáveis
     createCollectibles();
 }
 
 function createCollectibles() {
+    // Criar moedas
     for (let x = 0; x < 8; x++) {
         let coin = document.createElement('div');
         coin.className = 'coin';
@@ -424,6 +482,7 @@ function createCollectibles() {
         gameArea.appendChild(coin);
     }
     
+    // Criar boosts de velocidade
     for (let x = 0; x < 3; x++) {
         let boost = document.createElement('div');
         boost.className = 'speedBoost';
@@ -434,6 +493,7 @@ function createCollectibles() {
         gameArea.appendChild(boost);
     }
     
+    // Criar shields
     for (let x = 0; x < 2; x++) {
         let shield = document.createElement('div');
         shield.className = 'shield';

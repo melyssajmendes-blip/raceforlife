@@ -11,7 +11,7 @@
     border-radius: 10px;
     width:60px;
     position:absolute;
-    background:url('assets/player_car.png');
+    background:url('assets/player_car.png'); /* MODIFICADO: arquivo local */
     background-repeat: no-repeat;
     background-size: 60px 100px;
     z-index: 10;
@@ -26,23 +26,34 @@
     align-items: center;
     overflow: hidden;
 }
-
+.lines{
+    width:8px;
+    height:120px;
+    background: white;
+    position:absolute;
+    z-index: 1;
+}
+/* Linhas para 4 pistas em pista mais larga */
+.line1{
+    left: 25%;
+}
+.line2{
+    left: 50%;
+}
+.line3{
+    left: 75%;
+}
 .gameArea{
     height:100vh;
-    width:600px;
+    width:600px; /* Aumentado de 400px para 600px */
+    background: #2c3e50;
     margin:auto;
     position:relative;
     overflow:hidden;
     border-right:10px dashed #ecf0f1;
     border-left:10px dashed #ecf0f1;
     box-shadow: 0 0 30px rgba(0,0,0,0.7);
-    /* IMAGEM DA PISTA CONFIGURADA DIRETAMENTE NO CSS */
-    background-image: url('pista.png');
-    background-repeat: repeat-y;
-    background-position: center top;
-    background-size: 600px auto;
 }
-
 .enemy{
     height:100px;
     border-radius: 10px;
@@ -54,6 +65,7 @@
     filter: drop-shadow(2px 2px 5px rgba(0,0,0,0.5));
 }
 
+/* Estilos para diferentes tipos de carros inimigos - MODIFICADO: arquivos locais */
 .enemy.red{
     background-image: url('assets/enemy_red.png');
     background-color: transparent;
@@ -129,6 +141,7 @@
 .startScreen:hover{
     transform:translate(-50%,-50%) scale(1.05);
 }
+/* Itens coletáveis - MODIFICADO: arquivos locais */
 .coin{
     height:35px;
     width:35px;
@@ -175,6 +188,7 @@
     0%, 100% { transform: translateY(0px); }
     50% { transform: translateY(-10px); }
 }
+/* Efeito de shield ativo */
 .shieldActive {
     animation: shieldPulse 1s infinite;
     border: 3px solid cyan;
@@ -184,6 +198,7 @@
     50% { box-shadow: 0 0 20px cyan; }
     100% { box-shadow: 0 0 5px cyan; }
 }
+/* Efeito de boost ativo */
 .boostActive {
     animation: boostPulse 0.5s infinite;
 }
@@ -191,6 +206,7 @@
     0% { filter: hue-rotate(0deg) brightness(1.2); }
     100% { filter: hue-rotate(360deg) brightness(1.2); }
 }
+/* Efeito de nitro */
 .nitroEffect {
     position: absolute;
     width: 30px;
